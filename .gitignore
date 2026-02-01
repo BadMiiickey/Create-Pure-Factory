@@ -1,0 +1,24 @@
+.vscode
+.probe
+config
+crash-reports
+defaultconfigs
+downloads
+kubejs/assets
+local
+logs
+mods
+natives-windows-x86_64
+resourcepacks
+saves
+schematics
+simplebackups
+
+command_history.txt
+Create Pure Factory.jar
+Create Pure Factory.json
+log4j2.xml
+options.txt
+usercache.json
+usernamecache.json
+jsconfig.json

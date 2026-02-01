@@ -1,0 +1,10 @@
+//priority: 100
+
+/** @type { import("net.minecraft.world.level.block.state.properties.SlabType").$SlabType$$Type } */
+var $SlabType = Java.loadClass('net.minecraft.world.level.block.state.properties.SlabType')
+/** @type { import("net.minecraft.core.Direction$Axis").$Direction$Axis$$Type } */
+var $Axis = Java.loadClass('net.minecraft.core.Direction$Axis')
+/** @type { import("net.minecraft.world.level.block.state.properties.Half").$Half$$Type } */
+var $Half = Java.loadClass('net.minecraft.world.level.block.state.properties.Half')
+/** @type { import("com.simibubi.create.content.kinetics.belt.BeltBlock").$BeltBlock$$Type } */
+var $BeltBlock = Java.loadClass('com.simibubi.create.content.kinetics.belt.BeltBlock')
