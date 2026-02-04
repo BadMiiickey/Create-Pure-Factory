@@ -44,7 +44,7 @@ BlockEvents.blockEntityTick('purefactory:industrial_platform', event => {
 
     outliner.showAABB(entity, frameAABB)
         .withFaceTextures($AllSpecialTextures.CHECKERED, $AllSpecialTextures.HIGHLIGHT_CHECKERED)
-        .colored(0x00CD00)
+        .colored(0xEEEE00)
         .disableLineNormals()
         .lineWidth(0.0625)
 

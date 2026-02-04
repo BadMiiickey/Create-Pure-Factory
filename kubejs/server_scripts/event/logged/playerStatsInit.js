@@ -5,5 +5,9 @@ PlayerEvents.loggedIn(event => {
 
     if (!persistentData.contains('hasInit')) {
         persistentData.putBoolean('hasInit', true)
+        
+        persistentData.putInt('easyBreakCount', 0)
+        persistentData.putString('easyBreakFirstPos', '')
+        persistentData.putString('easyBreakSecondPos', '')
     }
 })

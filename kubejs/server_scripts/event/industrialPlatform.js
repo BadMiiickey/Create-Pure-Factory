@@ -19,7 +19,7 @@ BlockEvents.rightClicked('purefactory:industrial_platform', event => {
 
     const { item, block, level, hand, server, player } = event
 
-    if (hand !== 'MAIN_HAND') return
+    if (hand.name() !== 'MAIN_HAND') return
     if (item.id === 'create:wrench') return
 
     const facing = block.getBlockState().getValue(BlockProperties.HORIZONTAL_FACING)
