@@ -8,3 +8,5 @@ var $Axis = Java.loadClass('net.minecraft.core.Direction$Axis')
 var $Half = Java.loadClass('net.minecraft.world.level.block.state.properties.Half')
 /** @type { import("com.simibubi.create.content.kinetics.belt.BeltBlock").$BeltBlock$$Type } */
 var $BeltBlock = Java.loadClass('com.simibubi.create.content.kinetics.belt.BeltBlock')
+/** @type { import("net.minecraft.nbt.CompoundTag").$CompoundTag } */
+var $CompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')

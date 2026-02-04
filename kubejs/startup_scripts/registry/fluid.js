@@ -1,4 +1,3 @@
 StartupEvents.registry('fluid', event => {
-    event.create('kubejs:underground_water')
-        .tint(0x3F76E4)
+    event.create('purefactory:underground_water')
 })

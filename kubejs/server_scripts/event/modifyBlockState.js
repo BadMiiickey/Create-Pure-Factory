@@ -5,18 +5,13 @@ BlockEvents.rightClicked(event => {
     if (hand.name() !== 'MAIN_HAND') return
     if (item.id !== 'create:wrench') return
     if (block.getMod() === 'create') return
-    if (!player.persistentData.contains('blockStateModifyCount')) return
 
     const state = block.getBlockState()
     const pos = block.getPos()
     const values = state.getValues()
-    let modifyCount = player.persistentData.getInt('blockStateModifyCount')
 
     if (values.containsKey(BlockProperties.HORIZONTAL_FACING)) {
-        modifyCount = nextCount(player, horizontalFacing, state.getValue(BlockProperties.HORIZONTAL_FACING))
-
-        updateCounter(player, modifyCount, horizontalFacing)
-
+        let modifyCount = nextCount(horizontalFacing, state.getValue(BlockProperties.HORIZONTAL_FACING))
         let newState = state.setValue(BlockProperties.HORIZONTAL_FACING, horizontalFacing[modifyCount])
 
         player.swing()
@@ -26,10 +21,7 @@ BlockEvents.rightClicked(event => {
     if (values.containsKey(BlockProperties.SLAB_TYPE)) {
         if (state.getValue(BlockProperties.SLAB_TYPE) === $SlabType.DOUBLE) return
 
-        modifyCount = nextCount(player, slabType, state.getValue(BlockProperties.SLAB_TYPE))
-
-        updateCounter(player, modifyCount, slabType)
-
+        let modifyCount = nextCount(slabType, state.getValue(BlockProperties.SLAB_TYPE))
         let newState = state.setValue(BlockProperties.SLAB_TYPE, slabType[modifyCount])
 
         player.swing()
@@ -37,10 +29,7 @@ BlockEvents.rightClicked(event => {
     }
 
     if (values.containsKey(BlockProperties.AXIS)) {
-        modifyCount = nextCount(player, axis, state.getValue(BlockProperties.AXIS))
-
-        updateCounter(player, modifyCount, axis)
-
+        let modifyCount = nextCount(axis, state.getValue(BlockProperties.AXIS))
         let newState = state.setValue(BlockProperties.AXIS, axis[modifyCount])
 
         player.swing()
@@ -50,10 +39,7 @@ BlockEvents.rightClicked(event => {
     if (!Client.altDown && !Client.shiftDown) return
     
     if (values.containsKey(BlockProperties.HALF)) {
-        modifyCount = nextCount(player, half, state.getValue(BlockProperties.HALF))
-
-        updateCounter(player, modifyCount, half)
-
+        let modifyCount = nextCount(half, state.getValue(BlockProperties.HALF))
         let newState = state.setValue(BlockProperties.HALF, half[modifyCount])
 
         player.swing()

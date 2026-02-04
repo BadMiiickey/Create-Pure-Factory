@@ -5,7 +5,5 @@ PlayerEvents.loggedIn(event => {
 
     if (!persistentData.contains('hasInit')) {
         persistentData.putBoolean('hasInit', true)
-
-        persistentData.putInt('blockStateModifyCount', 0)
     }
 })
