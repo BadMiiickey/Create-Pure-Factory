@@ -12,7 +12,7 @@ const getPosFromKey = (key) => {
  * 
  * @param { import("net.minecraft.world.entity.player.Player").$Player$$Type } player 
  */
-const getMaxMiningLevelItem = (player) => {
+const getMaxMiningItems = (player) => {
     const allItems = player.inventory.getAllItems()
     const canMineObsidianItem = allItems.stream()
         .filter(item => item.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()))
@@ -26,11 +26,20 @@ const getMaxMiningLevelItem = (player) => {
         .filter(item => item.isCorrectToolForDrops(Blocks.STONE.defaultBlockState()))
         .findFirst()
         .orElse(null)
+    const shovelItem = allItems.stream()
+        .filter(item => item.isCorrectToolForDrops(Blocks.SNOW_BLOCK.defaultBlockState()))
+        .findFirst()
+        .orElse(null)
+    const axeItem = allItems.stream()
+        .filter(item => item.isCorrectToolForDrops(Blocks.OAK_WOOD.defaultBlockState()))
+        .findFirst()
+        .orElse(null)
 
-    if (canMineObsidianItem) return canMineObsidianItem
-    if (canMineIronBlockItem) return canMineIronBlockItem
-    if (canMineStoneItem) return canMineStoneItem
-    return null
+    if (canMineObsidianItem) return [canMineObsidianItem, shovelItem, axeItem]
+    if (canMineIronBlockItem) return [canMineIronBlockItem, shovelItem, axeItem]
+    if (canMineStoneItem) return [canMineStoneItem, shovelItem, axeItem]
+
+    return [null, shovelItem, axeItem]
 }
 
 /**
@@ -40,8 +49,10 @@ const getMaxMiningLevelItem = (player) => {
  * @param { import("net.minecraft.world.entity.player.Player").$Player$$Type } player
  * @param { import("net.minecraft.world.phys.AABB").$AABB } frameAABB 
  * @param { import("net.minecraft.world.item.ItemStack").$ItemStack } maxMiningLevelItem 
+ * @param { import("net.minecraft.world.item.ItemStack").$ItemStack } shovelItem
+ * @param { import("net.minecraft.world.item.ItemStack").$ItemStack } axeItem
  */
-const breakBlocks = (level, server, player, frameAABB, maxMiningLevelItem) => {
+const breakBlocks = (level, server, player, frameAABB, maxMiningLevelItem, shovelItem, axeItem) => {
     let counter = 0
     const totalSteps = frameAABB.maxY - frameAABB.minY
     let cannotMine = false
@@ -56,6 +67,8 @@ const breakBlocks = (level, server, player, frameAABB, maxMiningLevelItem) => {
                 if (
                     !blockState.requiresCorrectToolForDrops()
                     || (maxMiningLevelItem && maxMiningLevelItem.isCorrectToolForDrops(blockState))
+                    || (shovelItem && shovelItem.isCorrectToolForDrops(blockState))
+                    || (axeItem && axeItem.isCorrectToolForDrops(blockState))
                 ) {
                     level.destroyBlock(breakPos, true)
                     continue
@@ -92,4 +105,28 @@ const createAABBForBlocks = (firstPos, secondPos) => {
     const maxZ = Math.max(firstPos.z, secondPos.z) + 1
 
     return AABB.of(minX, minY, minZ, maxX, maxY, maxZ)
+}
+
+/**
+ * 
+ * @param { import("net.minecraft.resources.ResourceKey").$ResourceKey$$Type<import("net.minecraft.world.level.block.Block").$Block$$Type> } id 
+ */
+const getHitBlock = (id) => {
+    const { level, hitResult } = Client
+    const hitPos = hitResult.getLocation()
+    let [x, y, z] = [Math.floor(hitPos.x()), Math.floor(hitPos.y()), Math.floor(hitPos.z())]
+
+    for (let dy of [-1, 0, 1]) {
+        for (let dx of [-1, 0, 1]) {
+            for (let dz of [-1, 0, 1]) {
+                let block = level.getBlock(x + dx, y + dy, z + dz)
+
+                if (block.getId() !== id) continue
+
+                return block
+            }
+        }
+    }
+
+    return null
 }

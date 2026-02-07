@@ -10,3 +10,5 @@ var $Half = Java.loadClass('net.minecraft.world.level.block.state.properties.Hal
 var $BeltBlock = Java.loadClass('com.simibubi.create.content.kinetics.belt.BeltBlock')
 /** @type { import("net.minecraft.nbt.CompoundTag").$CompoundTag } */
 var $CompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
+/** @type { import("java.lang.Integer").$Integer } */
+var $Integer = Java.loadClass('java.lang.Integer')

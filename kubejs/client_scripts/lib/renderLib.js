@@ -4,6 +4,7 @@ const frameAABBs = {}
 const scrollYOffsets = {}
 /** @type {{ string: string }} */
 const breakPoses = {}
+const schematicRenderers = {}
 
 /**
  * 
@@ -60,38 +61,86 @@ const getAirPos = (hitPos) => {
 
 /**
  * 
- * @param { import("net.minecraft.resources.ResourceKey").$ResourceKey$$Type<import("net.minecraft.world.level.block.Block").$Block$$Type> } id 
- * @param { import("net.minecraft.core.BlockPos").$BlockPos } fakePos 
- * @param { import("com.chen1335.renderjs.client.events.renderEvent.RenderJSRenderLevelEvent").$RenderJSRenderLevelEvent$$Type } event 
- * @param { integer } lightColor 
+ * @param { import("net.minecraft.world.phys.AABB").$AABB } frameAABB 
  */
-const renderFakeBlock = (id, fakePos, event, lightColor) => {
-    const { poseStack, bufferSource, camera } = event
-    const { level } = Client
-    const fakeState = Block.getBlock(id).defaultBlockState()
-    const cameraPos = camera.position
+const prepareSchematicLevel = (frameAABB) => {
+    const anchor = new BlockPos(frameAABB.minX, frameAABB.minY, frameAABB.minZ)
+    const level = new $SchematicLevel(anchor, Client.level)
+    /**
+     * 
+     * @param { import("net.minecraft.core.BlockPos").$BlockPos } pos 
+     * @param { import("net.minecraft.world.level.block.state.BlockState").$BlockState$$Type } state 
+     */
+    const setBlock = (pos, state) => {
+        const realState = Client.level.getBlockState(pos)
 
-    if (level.getBlock(fakePos).getId() !== 'minecraft:air') return
+        if (!realState.isAir()) return
 
-    poseStack.pushPose()
-    poseStack.translate(fakePos.x - cameraPos.x(), fakePos.y - cameraPos.y(), fakePos.z - cameraPos.z())
-    event.renderSingleBlock(fakeState, poseStack, bufferSource, lightColor, $OverlayTexture.NO_OVERLAY)
-    poseStack.popPose()
+        level.setBlock(pos, state, 3)
+    }
+
+    return { 
+        level: level, 
+        anchor: anchor, 
+        setBlock: setBlock  
+    }
 }
 
 /**
  * 
- * @param { import("net.minecraft.resources.ResourceKey").$ResourceKey$$Type<import("net.minecraft.world.level.block.Block").$Block$$Type> } id 
- * @param { import("net.minecraft.core.BlockPos").$BlockPos } fakePos 
- * @param { import("com.chen1335.renderjs.client.events.renderEvent.RenderJSRenderLevelEvent").$RenderJSRenderLevelEvent$$Type } event 
- * @param { integer } lightColor 
+ * @param { (pos: import("net.minecraft.core.BlockPos").$BlockPos, state: import("net.minecraft.world.level.block.state.BlockState").$BlockState$$Type) => void } setBlock 
+ * @param { import("net.minecraft.world.phys.AABB").$AABB } frameAABB 
  */
-const renderSideBlock = (id, fakePos, event, lightColor) => {
-    for (let dx of [-1, 0, 1]) {
-        for (let dz of [-1, 0, 1]) {
-            if (dx === 0 && dz === 0) continue
-            
-            renderFakeBlock(id, new BlockPos(fakePos.x + dx, fakePos.y, fakePos.z + dz), event, lightColor)
+const buildStoneBase = (setBlock, frameAABB) => {
+    const stoneAABB = frameAABB.setMaxY(frameAABB.maxY - 9)
+    const innerHollowAABB = stoneAABB.deflate(1).setMaxY(frameAABB.maxY - 9)
+
+    for (let dy = stoneAABB.minY; dy <= stoneAABB.maxY; dy++) {
+        for (let dx = stoneAABB.minX; dx <= stoneAABB.maxX - 1; dx++) {
+            for (let dz = stoneAABB.minZ; dz <= stoneAABB.maxZ - 1; dz++) {
+                let fakePos = new BlockPos(dx, dy, dz)
+
+                if (innerHollowAABB.contains(fakePos.center)) continue
+
+                setBlock(fakePos, blockStates.stone)
+            }
+        }
+    }
+}
+
+/**
+ * 
+ * @param { (pos: import("net.minecraft.core.BlockPos").$BlockPos, state: import("net.minecraft.world.level.block.state.BlockState").$BlockState$$Type) => void } setBlock 
+ * @param { import("net.minecraft.core.BlockPos").$BlockPos } hitPos 
+ * @param { import("net.minecraft.world.phys.AABB").$AABB } frameAABB 
+ */
+const buildPlatform = (setBlock, hitPos, frameAABB) => {
+    const platformAABB = frameAABB.setMinY(frameAABB.minY + 4).setMaxY(frameAABB.maxY - 8)
+    const innerPatternAABB = platformAABB.deflate(2)
+    const y = platformAABB.minY
+    const neighbors = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [-1,-1], [1,-1], [-1,1]]
+    const { snowBlock, lightGrayConcrete, yellowConcrete, blackConcrete } = blockStates
+
+    for (let dx = platformAABB.minX; dx <= platformAABB.maxX - 1; dx++) {
+        for (let dz = platformAABB.minZ; dz <= platformAABB.maxZ - 1; dz++) {
+            let fakePos = new BlockPos(dx, y, dz)
+
+            if (innerPatternAABB.contains(fakePos.center)) {
+                if (isSnowCenter(hitPos, dx, dz)) {
+                    setBlock(fakePos, snowBlock)
+                    neighbors.forEach(([offX, offZ]) => setBlock(new BlockPos(dx + offX, y, dz + offZ), lightGrayConcrete))
+                    
+                } else if (isConcreteCenter(hitPos, dx, dz)) {
+                    setBlock(fakePos, lightGrayConcrete)
+                    neighbors.forEach(([offX, offZ]) => setBlock(new BlockPos(dx + offX, y, dz + offZ), snowBlock))
+                }
+            } else {
+                if (isBlackFrame(hitPos, dx, dz)) {
+                    setBlock(fakePos, blackConcrete)
+                } else {
+                    setBlock(fakePos, yellowConcrete)
+                }
+            }
         }
     }
 }
@@ -99,42 +148,16 @@ const renderSideBlock = (id, fakePos, event, lightColor) => {
 /**
  * 
  * @param { import("net.minecraft.core.BlockPos").$BlockPos } hitPos 
- * @param { number } dx 
- * @param { number } dz 
+ * @param { import("net.minecraft.world.phys.AABB").$AABB } frameAABB 
+ * @returns 
  */
-const isSnowCenter = (hitPos, dx, dz) => {
-    let relativeX = dx - hitPos.x
-    let relativeZ = dz - hitPos.z
+const createPlatformRenderer = (hitPos, frameAABB) => {
+    const { level, setBlock } = prepareSchematicLevel(frameAABB)
 
-    return ((relativeX + relativeZ) % 6 === 0) && (Math.abs(relativeX - relativeZ) % 6 === 0)
-}
+    buildStoneBase(setBlock, frameAABB)
+    buildPlatform(setBlock, hitPos, frameAABB)
 
-/**
- * 
- * @param { import("net.minecraft.core.BlockPos").$BlockPos } hitPos 
- * @param { number } dx 
- * @param { number } dz 
- */
-const isConcreteCenter = (hitPos, dx, dz) => {
-    let relativeX = dx - hitPos.x
-    let relativeZ = dz - hitPos.z
-
-    return ((relativeX + relativeZ + 3) % 6 === 0) && (Math.abs(relativeX - relativeZ + 3) % 6 === 0)
-}
-
-/**
- * 
- * @param { import("net.minecraft.core.BlockPos").$BlockPos } hitPos 
- * @param { number } dx 
- * @param { number } dz 
- */
-const isBlackFrame = (hitPos, dx, dz) => {
-    let relativeX = dx - hitPos.x
-    let relativeZ = dz - hitPos.z
-    let blockX = (relativeX / 2) | 0
-    let blockZ = (relativeZ / 2) | 0
-
-    return (blockX + blockZ) % 2 === 0
+    return new $SchematicRenderer(level)
 }
 
 /**

@@ -9,3 +9,7 @@ var $Vector4f = Java.loadClass('org.joml.Vector4f')
 var $MouseScrollingEvent = Java.loadClass('net.neoforged.neoforge.client.event.InputEvent$MouseScrollingEvent')
 /** @type { import("net.minecraft.nbt.CompoundTag").$CompoundTag } */
 var $CompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
+/** @type { import("net.createmod.catnip.levelWrappers.SchematicLevel").$SchematicLevel$$Type } */
+var $SchematicLevel = Java.loadClass('net.createmod.catnip.levelWrappers.SchematicLevel')
+var $SchematicRenderer = Java.loadClass('com.simibubi.create.content.schematics.client.SchematicRenderer')
+var $DefaultSuperRenderTypeBuffer = Java.loadClass('net.createmod.catnip.render.DefaultSuperRenderTypeBuffer')

@@ -1,17 +1,27 @@
 NativeEvents.onEvent($MouseScrollingEvent, /** @param { import("net.neoforged.neoforge.client.event.InputEvent$MouseScrollingEvent").$InputEvent$MouseScrollingEvent$$Type} event */ event => {
     
     const { scrollDeltaY } = event
-    const { level, screen, hitResult } = Client
+    const { level, screen, hitResult, player } = Client
+    const { mainHandItem } = player
     
     if (!level || screen !== null) return
     if (scrollDeltaY === 0) return
     if (!hitResult || hitResult.getType().name() !== 'BLOCK') return
+    if (mainHandItem.id !== 'create:wrench') return
     
     const hitPos = hitResult.getLocation()
     let [x, y, z] = [Mth.floor(hitPos.x()), Mth.floor(hitPos.y()), Mth.floor(hitPos.z())]
     const hitBlock = getHitBlock('purefactory:industrial_platform', scrollDeltaY)
 
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
+
+    const dataTag = new $CompoundTag()
+    const key = `${x},${y},${z}`
+    const yOffset = scrollYOffsets[key] || 0
+
+    dataTag.putString('key', key)
+    dataTag.putInt('yOffset', yOffset)
+    player.sendData('purefactory:platform_scroll', dataTag)
 
     event.setCanceled(true)
 })
@@ -54,13 +64,13 @@ BlockEvents.blockEntityTick('purefactory:industrial_platform', event => {
 
 RenderJSEvents.onLevelRender(event => {
 
-    const { poseStack, bufferSource, stage, camera } = event
-    const { level, levelRenderer, blockRenderer, hitResult, player } = Client
+    const { poseStack, stage, camera } = event
+    const { level, hitResult, player } = Client
 
     if (!level || !level.isClientSide()) return
     if (!hitResult || hitResult.getType().name() !== 'BLOCK') return
     if (stage !== RenderJSLevelRenderStage.AFTER_ENTITIES) return
-
+    
     const hitBlock = getHitBlock('purefactory:industrial_platform')
     
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
@@ -69,58 +79,25 @@ RenderJSEvents.onLevelRender(event => {
     const [x, y, z] = [hitPos.x, hitPos.y, hitPos.z]
     const key = `${x},${y},${z}`
     
-    if (scrollYOffsets[key] === undefined || !frameAABBs[key]) return
+    if (!frameAABBs[key]) return
     
     const yOffset = scrollYOffsets[key]
     /** @type { import("net.minecraft.world.phys.AABB").$AABB } */
     const frameAABB = frameAABBs[key]
-    const stoneAABB = frameAABB.setMaxY(frameAABB.maxY - 9)
-    const stoneInnerAABB = stoneAABB.deflate(1).setMaxY(frameAABB.maxY - 9)
-    const platformAABB = frameAABB.setMinY(frameAABB.minY + 4).setMaxY(frameAABB.maxY - 8)
-    const innerAABB = platformAABB.deflate(2)
-    const lightColor = levelRenderer.getLightColor(level, getAirPos(hitPos))
-    const cameraPos = camera.position
-    
-    for (let dy = stoneAABB.minY; dy <= stoneAABB.maxY; dy++) {
-        for (let dx = stoneAABB.minX; dx <= stoneAABB.maxX - 1; dx++) {
-            for (let dz = stoneAABB.minZ; dz <= stoneAABB.maxZ - 1; dz++) {
-                let fakePos = new BlockPos(dx, dy, dz)
+    const renderer = schematicRenderers[key] || createPlatformRenderer(hitPos, frameAABB)
+    const anchorX = frameAABB.minX
+    const anchorY = frameAABB.minY
+    const anchorZ = frameAABB.minZ
+    const camX = camera.position.x()
+    const camY = camera.position.y()
+    const camZ = camera.position.z()
+    const superBuffer = $DefaultSuperRenderTypeBuffer.getInstance()
 
-                if (stoneInnerAABB.contains(fakePos.center)) continue
-                
-                renderFakeBlock('minecraft:stone', fakePos, event, lightColor)
-            }
-        }
-    }
-
-    for (let dx = platformAABB.minX; dx <= platformAABB.maxX - 1; dx++) {
-        for (let dz = platformAABB.minZ; dz <= platformAABB.maxZ - 1; dz++) {
-            let fakePos = new BlockPos(dx, platformAABB.minY, dz)
-
-            if (innerAABB.contains(fakePos.center)) {
-                if (isSnowCenter(hitPos, dx, dz)) {
-                    renderFakeBlock('minecraft:snow_block', fakePos, event, lightColor)
-                    renderSideBlock('minecraft:light_gray_concrete', fakePos, event, lightColor, hitPos)
-                } else if (isConcreteCenter(hitPos, dx, dz)) {
-                    renderFakeBlock('minecraft:light_gray_concrete', fakePos, event, lightColor)
-                    renderSideBlock('minecraft:snow_block', fakePos, event, lightColor, hitPos)
-                }
-                
-            } else {
-                if (isBlackFrame(hitPos, dx, dz)) {
-                    renderFakeBlock('minecraft:black_concrete', fakePos, event, lightColor)
-                } else {
-                    renderFakeBlock('minecraft:yellow_concrete', fakePos, event, lightColor)
-                }
-            }
-        }
-    }
-
-    const dataTag = new $CompoundTag()
-
-    dataTag.putString('key', key)
-    dataTag.putInt('yOffset', yOffset)
-    player.sendData('purefactory:platform_scroll', dataTag)
+    poseStack.pushPose()
+    poseStack.translate(anchorX - camX, anchorY - camY, anchorZ - camZ)
+    renderer.render(poseStack, superBuffer)
+    poseStack.popPose()
+    superBuffer.draw()
 })
 
 NetworkEvents.dataReceived('purefactory:platform_complete', event => {

@@ -50,10 +50,11 @@ ItemEvents.rightClicked('create:wrench', event => {
     const frameAABB = createAABBForBlocks(firstPos, secondPos)
     const resetMessage = Component.translate('message.purefactory.easy_break.reset').green()
     const dataTag = new $CompoundTag()
+    const hitBlock = getHitBlock('purefactory:industrial_platform')
 
     dataTag.putString('firstKey', persistentData.getString('easyBreakFirstPos'))
 
-    if (Client.shiftDown) {
+    if (Client.shiftDown && hitBlock === null) {
         persistentData.putInt('easyBreakCount', 0)
         player.swing()
         player.tell(resetMessage)
@@ -63,10 +64,10 @@ ItemEvents.rightClicked('create:wrench', event => {
 
     if (persistentData.getInt('easyBreakCount') !== 2) return
     
-    const maxMiningLevelItem = getMaxMiningLevelItem(player)
+    const [maxMiningLevelItem, shovelItem, axeItem] = getMaxMiningItems(player)
 
     player.swing()
-    breakBlocks(level, server, player, frameAABB, maxMiningLevelItem)
+    breakBlocks(level, server, player, frameAABB, maxMiningLevelItem, shovelItem, axeItem)
     persistentData.putInt('easyBreakCount', 0)
     server.sendData('purefactory:easy_break_reset', dataTag)
 })

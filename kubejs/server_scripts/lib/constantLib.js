@@ -1,6 +1,11 @@
 const expandMap = {
-    'north': [15, 7, -15],
-    'south': [-15, 7, 15],
-    'west': [15, 7, 15],
-    'east': [-15, 7, -15]
+    'north': [63, 7, -63],
+    'south': [-63, 7, 63],
+    'west': [63, 7, 63],
+    'east': [-63, 7, -63]
 }
+
+const bannedEntities = [
+    'minecraft:wandering_trader',
+    'minecraft:phantom'
+]
