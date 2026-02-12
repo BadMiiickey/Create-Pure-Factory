@@ -47,7 +47,6 @@ NativeEvents.onEvent($MouseButton$Pre,  event => {
     if (action !== $GLFW.GLFW_PRESS) return
     if (screen !== null) return
     if (!level || !player) return
-    if (Client.shiftDown) return
 
     const { offHandItem, stringUuid, mainHandItem } = player
 
@@ -56,10 +55,16 @@ NativeEvents.onEvent($MouseButton$Pre,  event => {
     const rayTrace = player.rayTrace()
     const { block, facing, distance } = rayTrace
     
+    if (Client.shiftDown) {
+        placePoses[stringUuid] = { count: 0 }
+        player.sendData('purefactory:easy_place_reset')
+        return
+    }
     if (!block || distance > 5) return
 
     const canBePlacedPos = block.offset(facing).getPos()
     const key = createPosKey(canBePlacedPos)
+    const canResetMessage = Component.translate('message.purefactory.easy_place.can_reset').yellow()
     const data = new $CompoundTag()
 
     data.putString('pos', key)
@@ -70,6 +75,7 @@ NativeEvents.onEvent($MouseButton$Pre,  event => {
         case 0:
             placePoses[stringUuid].firstPos = canBePlacedPos
             placePoses[stringUuid].count = 1
+            Client.tell(canResetMessage)
             player.sendData('purefactory:easy_place_first_pos', data)
             break
         case 1:

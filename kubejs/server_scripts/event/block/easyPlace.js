@@ -38,3 +38,12 @@ NetworkEvents.dataReceived('purefactory:easy_place_complete', event => {
     placePoses[stringUuid].secondPos = undefined
 })
 
+NetworkEvents.dataReceived('purefactory:easy_place_reset', event => {
+
+    const { player } = event
+    const { stringUuid } = player
+    const resetMessage = Component.translate('message.purefactory.easy_place.reset').green()
+
+    placePoses[stringUuid] = {}
+    player.tell(resetMessage)
+})

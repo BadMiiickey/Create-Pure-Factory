@@ -1,13 +1,50 @@
+const heightPlants = [
+    'minecraft:sugar_cane',
+    'minecraft:cactus'
+]
+
+const smallPlants = ['minecraft:lily_pad']
+    .concat(Ingredient.of('#minecraft:small_flowers').itemIds.toArray())
+
 /**
  * 
+ * @param { import("dev.latvian.mods.kubejs.level.LevelBlock").$LevelBlock$$Type  } block
  * @param { import("net.minecraft.core.BlockPos").$BlockPos } pos 
  * @param { import("net.minecraft.world.level.Level").$Level } level 
  */
-const getSugarCaneTopAir = (pos, level) => {
+const getHeight = (block, pos, level) => {
+    let height = 1
+    let currentAbovePos = pos.above()
+    let currentBelowPos = pos.below()
+    let aboveBlock = level.getBlock(currentAbovePos)
+    let belowBlock = level.getBlock(currentBelowPos)
+
+    while (aboveBlock.getId() === block.getId()) {
+        height++
+        currentAbovePos = currentAbovePos.above()
+        aboveBlock = level.getBlock(currentAbovePos)
+    }
+
+    while (belowBlock.getId() === block.getId()) {
+        height++
+        currentBelowPos = currentBelowPos.below()
+        belowBlock = level.getBlock(currentBelowPos)
+    }
+
+    return height
+}
+
+/**
+ * 
+ * @param { import("dev.latvian.mods.kubejs.level.LevelBlock").$LevelBlock$$Type  } block
+ * @param { import("net.minecraft.core.BlockPos").$BlockPos } pos 
+ * @param { import("net.minecraft.world.level.Level").$Level } level 
+ */
+const getTopAir = (block, pos, level) => {
     let currentPos = pos.above()
     let aboveBlock = level.getBlock(currentPos)
 
-    while (aboveBlock.getId() === 'minecraft:sugar_cane') {
+    while (aboveBlock.getId() === block.getId()) {
         currentPos = currentPos.above()
         aboveBlock = level.getBlock(currentPos)
     }
