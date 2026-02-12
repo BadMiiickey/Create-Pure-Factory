@@ -54,7 +54,6 @@ BlockEvents.rightClicked('create:encased_fluid_pipe', event => {
     if (hand.name() !== 'MAIN_HAND') return
     if (!item.empty) return
 
-    const $Boolean = Java.loadClass('java.lang.Boolean')
     const state = block.getBlockState()
     const pos = block.getPos()
     const direction = facing.toString().toUpperCase()

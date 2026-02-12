@@ -1,3 +1,7 @@
+/** @type { import("net.createmod.catnip.outliner.Outliner").$Outliner$$Type } */
+const outliner = $Outliner.getInstance()
+const superBuffer = $DefaultSuperRenderTypeBuffer.getInstance()
+const neighbors = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [-1,-1], [1,-1], [-1,1]]
 const expandMap = {
     'north': [63, 7, -63],
     'south': [-63, 7, 63],

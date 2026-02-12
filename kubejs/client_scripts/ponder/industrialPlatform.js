@@ -1,6 +1,9 @@
 Ponder.registry(event => {
+    
+    const titleComponent = Component.translatable('ponder.purefactory.industrial_platform')
+
     event.create('purefactory:industrial_platform')
-        .scene('industrial_platform', '工业平台的使用', (scene, util) => {
+        .scene('purefactory:industrial_platform', titleComponent, (scene, util) => {
             const world = scene.world
 
             scene.showBasePlate()

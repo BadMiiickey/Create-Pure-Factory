@@ -25,10 +25,9 @@ BlockEvents.rightClicked('purefactory:industrial_platform', event => {
 
     const facing = block.getBlockState().getValue(BlockProperties.HORIZONTAL_FACING)
     const [expandX, expandY, expandZ] = expandMap[facing.toString()]
-    const [x, y, z] = [block.getX(), block.getY(), block.getZ()]
-    const key = `${x},${y},${z}`
-    const yOffset = scrollYOffsets[key] || 0
     const blockPos = block.getPos()
+    const key = createPosKey(blockPos)
+    const yOffset = scrollYOffsets[key] || 0
     const frameAABB = AABB.ofBlock(blockPos)
         .expandTowards(expandX, expandY, expandZ)
         .expandTowards(0, -4, 0)
@@ -40,11 +39,6 @@ BlockEvents.rightClicked('purefactory:industrial_platform', event => {
     platformFill(frameAABB, stoneAABB, platformAABB, innerAABB, level, blockPos, player)
     player.swing()
     delete scrollYOffsets[key]
-
-    const dataTag = new $CompoundTag()
-
-    dataTag.putString('key', key)
-    server.sendData('purefactory:platform_complete', dataTag)
     level.destroyBlock(blockPos, false)
     event.cancel()
 })

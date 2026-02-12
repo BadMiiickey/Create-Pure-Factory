@@ -1,15 +1,5 @@
 /**
  * 
- * @param { string } key 
- */
-const getPosFromKey = (key) => {
-    const [x, y, z] = key.split(',').map(char => Number(char))
-
-    return new BlockPos(x, y, z)
-}
-
-/**
- * 
  * @param { import("net.minecraft.world.entity.player.Player").$Player$$Type } player 
  */
 const getMaxMiningItems = (player) => {
@@ -89,44 +79,4 @@ const breakBlocks = (level, server, player, frameAABB, maxMiningLevelItem, shove
     }
 
     breakStep(frameAABB.minY)
-}
-
-/**
- * 
- * @param { import("net.minecraft.core.BlockPos").$BlockPos } firstPos 
- * @param { import("net.minecraft.core.BlockPos").$BlockPos } secondPos 
- */
-const createAABBForBlocks = (firstPos, secondPos) => {
-    const minX = Math.min(firstPos.x, secondPos.x)
-    const minY = Math.min(firstPos.y, secondPos.y)
-    const minZ = Math.min(firstPos.z, secondPos.z)
-    const maxX = Math.max(firstPos.x, secondPos.x) + 1
-    const maxY = Math.max(firstPos.y, secondPos.y) + 1
-    const maxZ = Math.max(firstPos.z, secondPos.z) + 1
-
-    return AABB.of(minX, minY, minZ, maxX, maxY, maxZ)
-}
-
-/**
- * 
- * @param { import("net.minecraft.resources.ResourceKey").$ResourceKey$$Type<import("net.minecraft.world.level.block.Block").$Block$$Type> } id 
- */
-const getHitBlock = (id) => {
-    const { level, hitResult } = Client
-    const hitPos = hitResult.getLocation()
-    let [x, y, z] = [Math.floor(hitPos.x()), Math.floor(hitPos.y()), Math.floor(hitPos.z())]
-
-    for (let dy of [-1, 0, 1]) {
-        for (let dx of [-1, 0, 1]) {
-            for (let dz of [-1, 0, 1]) {
-                let block = level.getBlock(x + dx, y + dy, z + dz)
-
-                if (block.getId() !== id) continue
-
-                return block
-            }
-        }
-    }
-
-    return null
 }

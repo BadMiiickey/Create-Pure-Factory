@@ -1,22 +1,26 @@
 NativeEvents.onEvent($MouseScrollingEvent, /** @param { import("net.neoforged.neoforge.client.event.InputEvent$MouseScrollingEvent").$InputEvent$MouseScrollingEvent$$Type} event */ event => {
     
     const { scrollDeltaY } = event
-    const { level, screen, hitResult, player } = Client
+    const { level, screen, player } = Client
     const { mainHandItem } = player
     
     if (!level || screen !== null) return
     if (scrollDeltaY === 0) return
-    if (!hitResult || hitResult.getType().name() !== 'BLOCK') return
     if (mainHandItem.id !== 'create:wrench') return
     
-    const hitPos = hitResult.getLocation()
-    let [x, y, z] = [Mth.floor(hitPos.x()), Mth.floor(hitPos.y()), Mth.floor(hitPos.z())]
-    const hitBlock = getHitBlock('purefactory:industrial_platform', scrollDeltaY)
+    const hitBlock = player.rayTrace().block
 
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
 
+    const key = createPosKey(hitBlock.getPos())
+
+    if (scrollDeltaY !== 0) {
+        if (scrollYOffsets[key] === undefined) scrollYOffsets[key] = 0
+
+        scrollYOffsets[key] += scrollDeltaY
+    }
+
     const dataTag = new $CompoundTag()
-    const key = `${x},${y},${z}`
     const yOffset = scrollYOffsets[key] || 0
 
     dataTag.putString('key', key)
@@ -29,22 +33,19 @@ NativeEvents.onEvent($MouseScrollingEvent, /** @param { import("net.neoforged.ne
 BlockEvents.blockEntityTick('purefactory:industrial_platform', event => {
 
     const { block, level } = event
-    const { hitResult } = Client
+    const { player } = Client
 
     if (!level.isClientSide()) return
-    if (!hitResult || hitResult.getType().name() !== 'BLOCK') return
 
-    const hitBlock = getHitBlock('purefactory:industrial_platform')
+    const hitBlock = player.rayTrace().block
 
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
 
-    /** @type { import("net.createmod.catnip.outliner.Outliner").$Outliner$$Type } */
-    const outliner = $Outliner.getInstance()
     const entity = block.getEntity()
     const pos = block.getPos()
     const facing = entity.blockState.getValue(BlockProperties.HORIZONTAL_FACING)
     const [expandX, expandY, expandZ] = expandMap[facing.toString()]
-    const key = `${pos.x},${pos.y},${pos.z}`
+    const key = createPosKey(pos)
     const yOffset = scrollYOffsets[key] || 0
 
     const frameAABB = AABB.ofBlock(pos)
@@ -52,11 +53,7 @@ BlockEvents.blockEntityTick('purefactory:industrial_platform', event => {
         .expandTowards(0, -4, 0)
         .move(0, yOffset, 0)
 
-    outliner.showAABB(entity, frameAABB)
-        .withFaceTextures($AllSpecialTextures.CHECKERED, $AllSpecialTextures.HIGHLIGHT_CHECKERED)
-        .colored(0xEEEE00)
-        .disableLineNormals()
-        .lineWidth(0.0625)
+    showFrame(entity, frameAABB, 0xEEEE00)
 
     frameAABBs[key] = frameAABB
     scrollYOffsets[key] = scrollYOffsets[key] || 0
@@ -65,19 +62,17 @@ BlockEvents.blockEntityTick('purefactory:industrial_platform', event => {
 RenderJSEvents.onLevelRender(event => {
 
     const { poseStack, stage, camera } = event
-    const { level, hitResult, player } = Client
+    const { level, player } = Client
 
     if (!level || !level.isClientSide()) return
-    if (!hitResult || hitResult.getType().name() !== 'BLOCK') return
     if (stage !== RenderJSLevelRenderStage.AFTER_ENTITIES) return
     
-    const hitBlock = getHitBlock('purefactory:industrial_platform')
+    const hitBlock = player.rayTrace().block
     
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
     
     const hitPos = hitBlock.getPos()
-    const [x, y, z] = [hitPos.x, hitPos.y, hitPos.z]
-    const key = `${x},${y},${z}`
+    const key = createPosKey(hitPos)
     
     if (!frameAABBs[key]) return
     
@@ -85,16 +80,11 @@ RenderJSEvents.onLevelRender(event => {
     /** @type { import("net.minecraft.world.phys.AABB").$AABB } */
     const frameAABB = frameAABBs[key]
     const renderer = schematicRenderers[key] || createPlatformRenderer(hitPos, frameAABB)
-    const anchorX = frameAABB.minX
-    const anchorY = frameAABB.minY
-    const anchorZ = frameAABB.minZ
-    const camX = camera.position.x()
-    const camY = camera.position.y()
-    const camZ = camera.position.z()
-    const superBuffer = $DefaultSuperRenderTypeBuffer.getInstance()
+    const [anchorX, anchorY, anchorZ] = [frameAABB.minX, frameAABB.minY, frameAABB.minZ]
+    const [cameraX, cameraY, cameraZ] = [camera.position.x(), camera.position.y(), camera.position.z()]
 
     poseStack.pushPose()
-    poseStack.translate(anchorX - camX, anchorY - camY, anchorZ - camZ)
+    poseStack.translate(anchorX - cameraX, anchorY - cameraY, anchorZ - cameraZ)
     renderer.render(poseStack, superBuffer)
     poseStack.popPose()
     superBuffer.draw()

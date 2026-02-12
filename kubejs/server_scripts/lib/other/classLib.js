@@ -12,3 +12,5 @@ var $BeltBlock = Java.loadClass('com.simibubi.create.content.kinetics.belt.BeltB
 var $CompoundTag = Java.loadClass('net.minecraft.nbt.CompoundTag')
 /** @type { import("java.lang.Integer").$Integer } */
 var $Integer = Java.loadClass('java.lang.Integer')
+/** @type { import("java.lang.Boolean").$Boolean } */
+var $Boolean = Java.loadClass('java.lang.Boolean')

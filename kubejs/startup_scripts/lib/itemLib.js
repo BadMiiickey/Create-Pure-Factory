@@ -1,3 +1,5 @@
+//priority: 100
+
 const unbreakableItems = [
     'minecraft:leather_helmet', 
     'minecraft:chainmail_helmet', 

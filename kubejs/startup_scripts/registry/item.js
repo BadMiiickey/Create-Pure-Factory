@@ -1,0 +1,22 @@
+StartupEvents.registry('item', event => {
+    event.create('purefactory:salt')
+    event.create('purefactory:food_ball')
+        .fireResistant()
+        .food(food => {
+            food.nutrition(10)
+                .saturation(40)
+                .removeEffect('minecraft:hunger')
+                .effect('minecraft:regeneration', 20 * 600, 0, 1)
+        })
+    event.create('purefactory:super_food_ball')
+        .fireResistant()
+        .food(food => {
+            food.nutrition(20)
+                .saturation(400)
+                .removeEffect('minecraft:hunger')
+                .effect('minecraft:regeneration', 20 * 1200, 0, 1)
+                .effect('minecraft:resistance', 20 * 1200, 0, 1)
+        })
+    event.create('purefactory:smart_block_counter')
+        .fireResistant()
+})
