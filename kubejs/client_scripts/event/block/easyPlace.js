@@ -41,7 +41,7 @@ RenderJSEvents.onLevelRender(event => {
 NativeEvents.onEvent($MouseButton$Pre,  event => {
 
     const { button, action } = event
-    const { level, player, screen} = Client
+    const { level, player, screen } = Client
 
     if (button !== $GLFW.GLFW_MOUSE_BUTTON_LEFT) return
     if (action !== $GLFW.GLFW_PRESS) return

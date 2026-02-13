@@ -17,3 +17,5 @@ var $SchematicRenderer = Java.loadClass('com.simibubi.create.content.schematics.
 var $DefaultSuperRenderTypeBuffer = Java.loadClass('net.createmod.catnip.render.DefaultSuperRenderTypeBuffer')
 var $MouseButton$Pre = Java.loadClass('net.neoforged.neoforge.client.event.InputEvent$MouseButton$Pre')
 var $GLFW = Java.loadClass('org.lwjgl.glfw.GLFW')
+/** @type { import("net.minecraft.client.gui.screens.inventory.AbstractContainerScreen").$AbstractContainerScreen } */
+var $AbstractContainerScreen = Java.loadClass('net.minecraft.client.gui.screens.inventory.AbstractContainerScreen')
