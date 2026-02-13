@@ -61,4 +61,5 @@ ItemEvents.rightClicked('purefactory:smart_block_counter', event => {
 
     player.swing()
     player.tell(countMessage)
+    server.sendData('purefactory:smart_block_counter_every_block', dataTag)
 })

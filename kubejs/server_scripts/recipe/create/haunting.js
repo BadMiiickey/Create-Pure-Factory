@@ -16,4 +16,20 @@ ServerEvents.recipes(event => {
         CreateItem.of('minecraft:netherrack', 0.75),
         Item.of('minecraft:cobblestone')
     ).id('purefactory:haunting/cobblestone_to_netherrack')
+
+    create.haunting(
+        [
+            CreateItem.of('minecraft:crimson_stem', 0.5),
+            CreateItem.of('minecraft:warped_stem', 0.5)
+        ],
+        Ingredient.of('#minecraft:logs_that_burn')
+    ).id('purefactory:haunting/logs_that_burn_to_crimson_warped_stems')
+
+    create.haunting(
+        [
+            CreateItem.of('minecraft:crimson_nylium', 0.5),
+            CreateItem.of('minecraft:warped_nylium', 0.5)
+        ],
+        Ingredient.of('#c:stones')
+    ).id('purefactory:haunting/stones_to_crimson_warped_nylium')
 })
