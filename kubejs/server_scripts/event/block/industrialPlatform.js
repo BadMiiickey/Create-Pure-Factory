@@ -1,10 +1,15 @@
 NetworkEvents.dataReceived('purefactory:platform_scroll', event => {
 
     const { data } = event
-    const key = data.getString('key')
+    const x = data.getInt('x')
+    const y = data.getInt('y')
+    const z = data.getInt('z')
     const yOffset = data.getInt('yOffset')
     
-    scrollYOffsets[key] = yOffset
+    const pos = new BlockPos(x, y, z)
+    const state = PlatformServerState.get(pos)
+
+    state.yOffset = yOffset
 })
 
 BlockEvents.placed('purefactory:industrial_platform', event => {
@@ -21,24 +26,44 @@ BlockEvents.rightClicked('purefactory:industrial_platform', event => {
 
     if (hand.name() !== 'MAIN_HAND') return
     if (item.id !== 'create:wrench') return
-    if (!Client.shiftDown) return
+    if (!player.isShiftKeyDown()) return
 
     const facing = block.getBlockState().getValue(BlockProperties.HORIZONTAL_FACING)
     const [expandX, expandY, expandZ] = expandMap[facing.toString()]
     const blockPos = block.getPos()
-    const key = createPosKey(blockPos)
-    const yOffset = scrollYOffsets[key] || 0
+
+    const state = PlatformServerState.get(blockPos)
+    const yOffset = state.yOffset
     const frameAABB = AABB.ofBlock(blockPos)
         .expandTowards(expandX, expandY, expandZ)
         .expandTowards(0, -4, 0)
         .move(0, yOffset, 0)
+
     const stoneAABB = frameAABB.setMaxY(frameAABB.maxY - 8)
     const platformAABB = frameAABB.setMinY(frameAABB.minY + 4).setMaxY(frameAABB.maxY - 7)
     const innerAABB = platformAABB.deflate(2)
     
     platformFill(frameAABB, stoneAABB, platformAABB, innerAABB, level, blockPos, player)
     player.swing()
-    delete scrollYOffsets[key]
     level.destroyBlock(blockPos, false)
+    PlatformServerState.remove(blockPos)
+    server.sendData('purefactory:platform_complete', {
+        x: blockPos.x,
+        y: blockPos.y,
+        z: blockPos.z
+    })
     event.cancel()
+})
+
+BlockEvents.broken('purefactory:industrial_platform', event => {
+
+    const { block, server } = event
+    const pos = block.getPos()
+
+    PlatformServerState.remove(pos)
+    server.sendData('purefactory:platform_complete', {
+        x: pos.x,
+        y: pos.y,
+        z: pos.z
+    })
 })

@@ -5,8 +5,16 @@
  */
 const sortContainer = (container, player) => {
     const rawItems = []
+    const isPlayerInventory = container === player.inventory
+    let start = 0
+    let end = container.getContainerSize()
 
-    for (let i = 9; i <= 35; i++) {
+    if (isPlayerInventory) {
+        start = 9
+        end = 36
+    }
+
+    for (let i = start; i < end; i++) {
         let item = container.getItem(i)
 
         if (item.isEmpty()) continue
@@ -21,8 +29,8 @@ const sortContainer = (container, player) => {
         return a.id.compareTo(b.id) || b.count - a.count
     })
 
-    for (let i = 9; i < 35; i++) {
-        container.setItem(i, mergedItems[i - 9] || Items.AIR)
+    for (let i = start; i < end; i++) {
+        container.setItem(i, mergedItems[i - start] || Items.AIR)
     }
 
     container.setChanged()

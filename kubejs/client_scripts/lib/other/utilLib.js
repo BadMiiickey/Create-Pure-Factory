@@ -40,9 +40,9 @@ const createPosKey = (pos) => {
  * @param { (pos: import("net.minecraft.core.BlockPos").$BlockPos) => void } callback 
  */
 const forEachPosInAABB = (aabb, callback) => {
-    for (let y = aabb.minY; y <= aabb.maxY; y++) {
-        for (let x = aabb.minX; x <= aabb.maxX - 1; x++) {
-            for (let z = aabb.minZ; z <= aabb.maxZ - 1; z++) {
+    for (let y = aabb.minY; y < aabb.maxY; y++) {
+        for (let x = aabb.minX; x < aabb.maxX; x++) {
+            for (let z = aabb.minZ; z < aabb.maxZ; z++) {
                 callback(new BlockPos(x, y, z))
             }
         }

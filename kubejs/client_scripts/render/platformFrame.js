@@ -12,21 +12,15 @@ NativeEvents.onEvent($MouseScrollingEvent, /** @param { import("net.neoforged.ne
 
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
 
-    const key = createPosKey(hitBlock.getPos())
+    const state = PlatformState.get(hitBlock.getPos())
 
-    if (scrollDeltaY !== 0) {
-        if (scrollYOffsets[key] === undefined) scrollYOffsets[key] = 0
-
-        scrollYOffsets[key] += scrollDeltaY
-    }
-
-    const dataTag = new $CompoundTag()
-    const yOffset = scrollYOffsets[key] || 0
-
-    dataTag.putString('key', key)
-    dataTag.putInt('yOffset', yOffset)
-    player.sendData('purefactory:platform_scroll', dataTag)
-
+    state.scroll(scrollDeltaY)
+    player.sendData('purefactory:platform_scroll', {
+        x: hitBlock.getPos().x,
+        y: hitBlock.getPos().y,
+        z: hitBlock.getPos().z,
+        yOffset: state.yOffset
+    })
     event.setCanceled(true)
 })
 
@@ -38,30 +32,24 @@ BlockEvents.blockEntityTick('purefactory:industrial_platform', event => {
     if (!level.isClientSide()) return
 
     const hitBlock = player.rayTrace().block
+    const pos = block.getPos()
 
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
 
     const entity = block.getEntity()
-    const pos = block.getPos()
     const facing = entity.blockState.getValue(BlockProperties.HORIZONTAL_FACING)
-    const [expandX, expandY, expandZ] = expandMap[facing.toString()]
-    const key = createPosKey(pos)
-    const yOffset = scrollYOffsets[key] || 0
+    const state = PlatformState.get(pos)
 
-    const frameAABB = AABB.ofBlock(pos)
-        .expandTowards(expandX, expandY, expandZ)
-        .expandTowards(0, -4, 0)
-        .move(0, yOffset, 0)
+    state.tick(facing)
 
-    showFrame(entity, frameAABB, 0xEEEE00)
+    if (!state.frameAABB) return
 
-    frameAABBs[key] = frameAABB
-    scrollYOffsets[key] = scrollYOffsets[key] || 0
+    showFrame(entity, state.frameAABB, 0xEEEE00)
 })
 
 RenderJSEvents.onLevelRender(event => {
 
-    const { poseStack, stage, camera } = event
+    const { poseStack, stage, camera, frustum } = event
     const { level, player } = Client
 
     if (!level || !level.isClientSide()) return
@@ -72,29 +60,33 @@ RenderJSEvents.onLevelRender(event => {
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
     
     const hitPos = hitBlock.getPos()
-    const key = createPosKey(hitPos)
-    
-    if (!frameAABBs[key]) return
-    
-    const yOffset = scrollYOffsets[key]
-    /** @type { import("net.minecraft.world.phys.AABB").$AABB } */
-    const frameAABB = frameAABBs[key]
-    const renderer = schematicRenderers[key] || createPlatformRenderer(hitPos, frameAABB)
-    const [anchorX, anchorY, anchorZ] = [frameAABB.minX, frameAABB.minY, frameAABB.minZ]
     const [cameraX, cameraY, cameraZ] = [camera.position.x(), camera.position.y(), camera.position.z()]
+    const state = PlatformState.get(hitPos)
+    const chunks = state.getRenderers()
 
-    poseStack.pushPose()
-    poseStack.translate(anchorX - cameraX, anchorY - cameraY, anchorZ - cameraZ)
-    renderer.render(poseStack, superBuffer)
-    poseStack.popPose()
+    if (!chunks) return
+
+    chunks.forEach(chunk => {
+        if (!frustum.isVisible(chunk.aabb)) return
+
+        let { renderer, anchor } = chunk
+
+        poseStack.pushPose()
+        poseStack.translate(anchor.x - cameraX, anchor.y - cameraY, anchor.z - cameraZ)
+        renderer.render(poseStack, superBuffer)
+        poseStack.popPose()
+    })
+    
     superBuffer.draw()
 })
 
 NetworkEvents.dataReceived('purefactory:platform_complete', event => {
 
     const { data } = event
-    const key = data.getString('key')
+    const x = data.getInt('x')
+    const y = data.getInt('y')
+    const z = data.getInt('z')
+    const pos = new BlockPos(x, y, z)
 
-    delete frameAABBs[key]
-    delete scrollYOffsets[key]
+    PlatformState.remove(pos)
 })
