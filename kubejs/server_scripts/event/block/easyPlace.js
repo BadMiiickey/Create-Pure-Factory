@@ -2,19 +2,21 @@ NetworkEvents.dataReceived('purefactory:easy_place_first_pos', event => {
 
     const { data, player } = event
     const { stringUuid } = player
-    const firstPos = getPosFromKey(data.getString('pos'))
 
-    placePoses[stringUuid] = {}
-    placePoses[stringUuid].firstPos = firstPos
+    const pos = getPosFromData(data)
+    const state = PlaceServerState.get(stringUuid)
+
+    state.firstPos = pos
 })
 
 NetworkEvents.dataReceived('purefactory:easy_place_second_pos', event => {
 
     const { data, player } = event
     const { stringUuid } = player
-    const secondPos = getPosFromKey(data.getString('pos'))
 
-    placePoses[stringUuid].secondPos = secondPos
+    const pos = getPosFromData(data)
+    const state = PlaceServerState.get(stringUuid)
+    state.secondPos = pos
 })
 
 NetworkEvents.dataReceived('purefactory:easy_place_complete', event => {
@@ -22,7 +24,8 @@ NetworkEvents.dataReceived('purefactory:easy_place_complete', event => {
     const { player, level } = event
     const { stringUuid, mainHandItem } = player
     
-    const frameAABB = createAABBForBlocks(placePoses[stringUuid].firstPos, placePoses[stringUuid].secondPos)
+    const state = PlaceServerState.get(stringUuid)
+    const frameAABB = createAABBForBlocks(state.firstPos, state.secondPos)
     const warnMessage = Component.translate('message.purefactory.easy_place.warn').red()
 
     if (!mainHandItem || !mainHandItem.block) {
@@ -34,8 +37,8 @@ NetworkEvents.dataReceived('purefactory:easy_place_complete', event => {
         level.getBlock(pos).set(mainHandItem.id)
     })
 
-    placePoses[stringUuid].firstPos = undefined
-    placePoses[stringUuid].secondPos = undefined
+    state.firstPos = undefined
+    state.secondPos = undefined
 })
 
 NetworkEvents.dataReceived('purefactory:easy_place_reset', event => {
@@ -44,6 +47,6 @@ NetworkEvents.dataReceived('purefactory:easy_place_reset', event => {
     const { stringUuid } = player
     const resetMessage = Component.translate('message.purefactory.easy_place.reset').green()
 
-    placePoses[stringUuid] = {}
+    PlaceServerState.reset(stringUuid)
     player.tell(resetMessage)
 })

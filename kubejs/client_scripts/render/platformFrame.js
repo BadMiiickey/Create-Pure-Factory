@@ -12,13 +12,15 @@ NativeEvents.onEvent($MouseScrollingEvent, /** @param { import("net.neoforged.ne
 
     if (!hitBlock || hitBlock.getId() !== 'purefactory:industrial_platform') return
 
-    const state = PlatformState.get(hitBlock.getPos())
+    const pos = hitBlock.getPos()
+    const { x, y, z } = pos
+    const state = PlatformState.get(pos)
 
     state.scroll(scrollDeltaY)
     player.sendData('purefactory:platform_scroll', {
-        x: hitBlock.getPos().x,
-        y: hitBlock.getPos().y,
-        z: hitBlock.getPos().z,
+        x: x,
+        y: y,
+        z: z,
         yOffset: state.yOffset
     })
     event.setCanceled(true)
@@ -83,10 +85,8 @@ RenderJSEvents.onLevelRender(event => {
 NetworkEvents.dataReceived('purefactory:platform_complete', event => {
 
     const { data } = event
-    const x = data.getInt('x')
-    const y = data.getInt('y')
-    const z = data.getInt('z')
-    const pos = new BlockPos(x, y, z)
+
+    const pos = getPosFromData(data)
 
     PlatformState.remove(pos)
 })

@@ -1,17 +1,5 @@
 /**
  * 
- * @param { string } key 
- */
-const getPosFromKey = (key) => {
-    if (!key) return null
-
-    const [x, y, z] = key.split(',').map(char => Number(char))
-
-    return new BlockPos(x, y, z)
-}
-
-/**
- * 
  * @param { import("net.minecraft.core.BlockPos").$BlockPos } firstPos 
  * @param { import("net.minecraft.core.BlockPos").$BlockPos } secondPos 
  */
@@ -28,14 +16,6 @@ const createAABBForBlocks = (firstPos, secondPos) => {
 
 /**
  * 
- * @param { import("net.minecraft.core.BlockPos").$BlockPos } pos 
- */
-const createPosKey = (pos) => {
-    return `${pos.x},${pos.y},${pos.z}`
-}
-
-/**
- * 
  * @param { import("net.minecraft.world.phys.AABB").$AABB } aabb 
  * @param { (pos: import("net.minecraft.core.BlockPos").$BlockPos) => void } callback 
  */
@@ -47,4 +27,16 @@ const forEachPosInAABB = (aabb, callback) => {
             }
         }
     }
+}
+
+/**
+ * 
+ * @param { import("net.minecraft.nbt.CompoundTag").$CompoundTag } data 
+ */
+const getPosFromData = (data) => {
+    const x = data.getInt('x')
+    const y = data.getInt('y')
+    const z = data.getInt('z')
+
+    return new BlockPos(x, y, z)
 }

@@ -4,11 +4,17 @@
  * @param { string } uuid 
  */
 function CounterState(uuid) {
+    /** @type { string } */
     this.uuid = uuid
+    /** @type { import("net.minecraft.core.BlockPos").$BlockPos } */
     this.firstPos = null
+    /** @type { import("net.minecraft.core.BlockPos").$BlockPos } */
     this.secondPos = null
+    /** @type { boolean } */
     this.everyBlock = false
+    /** @type { number } */
     this.scroll = 0
+    /** @type { Object<string, number> } */
     this.cacheCounts = null
 }
 
@@ -36,22 +42,38 @@ CounterState.reset = function(uuid) {
 CounterState.prototype = {
     constructor: CounterState,
 
+    /**
+     * 
+     * @param { import("net.minecraft.core.BlockPos").$BlockPos } pos 
+     */
     setFirstPos: function(pos) {
         this.firstPos = pos
         this.cacheCounts = null
         this.scroll = 0
     },
 
+    /**
+     * 
+     * @param { import("net.minecraft.core.BlockPos").$BlockPos } pos 
+     */
     setSecondPos: function(pos) {
         this.secondPos = pos
         this.cacheCounts = null
         this.scroll = 0
     },
 
+    /**
+     * 
+     * @param { boolean } everyBlock 
+     */
     setEveryBlock: function(everyBlock) {
         this.everyBlock = everyBlock
     },
 
+    /**
+     * 
+     * @param { number } delta 
+     */
     doScroll: function(delta) {
         if (!this.everyBlock) return
 
@@ -60,6 +82,10 @@ CounterState.prototype = {
         this.scroll = Math.max(0, newScroll)
     },
 
+    /**
+     * 
+     * @param { import("net.minecraft.core.BlockPos").$BlockPos } currentRayTracePos 
+     */
     getAABB: function(currentRayTracePos) {
         if (!this.firstPos) return null
 
@@ -70,6 +96,10 @@ CounterState.prototype = {
         return createAABBForBlocks(this.firstPos, secondPos)
     },
 
+    /**
+     * 
+     * @param { import("net.minecraft.world.level.Level").$Level } level 
+     */
     getBlockCount: function(level) {
         if (this.cacheCounts) return this.cacheCounts 
         if (!this.firstPos || !this.secondPos) return {}

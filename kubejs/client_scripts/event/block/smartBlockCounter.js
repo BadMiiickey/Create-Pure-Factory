@@ -2,11 +2,8 @@ NetworkEvents.dataReceived('purefactory:smart_block_counter_0', event => {
 
     const { data } = event
     const stringUuid = data.getString('stringUuid')
-    const x = data.getInt('x')
-    const y = data.getInt('y')
-    const z = data.getInt('z')
 
-    const pos = new BlockPos(x, y, z)
+    const pos = getPosFromData(data)
     const state = CounterState.get(stringUuid)
 
     state.setFirstPos(pos)
@@ -16,11 +13,8 @@ NetworkEvents.dataReceived('purefactory:smart_block_counter_1', event => {
 
     const { data } = event
     const stringUuid = data.getString('stringUuid')
-    const x = data.getInt('x')
-    const y = data.getInt('y')
-    const z = data.getInt('z')
 
-    const pos = new BlockPos(x, y, z)
+    const pos = getPosFromData(data)
     const state = CounterState.get(stringUuid)
 
     state.setSecondPos(pos)

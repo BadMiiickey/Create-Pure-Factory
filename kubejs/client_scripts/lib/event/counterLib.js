@@ -2,10 +2,10 @@
  * 
  * @param { import("net.minecraft.world.level.Level").$Level } level 
  * @param { import("net.minecraft.world.phys.AABB").$AABB } aabb 
- * @returns { string: number }
+ * @returns { Object<string, number> }
  */
 const getBlocksInAABB = (level, aabb) => {
-    /** @type { string: number } */
+    /** @type { Object<string, number> } */
     const blocks = {}
 
     forEachPosInAABB(aabb, pos => {
@@ -17,7 +17,7 @@ const getBlocksInAABB = (level, aabb) => {
         blocks[state.getId()] = (blocks[state.getId()] || 0) + 1
     })
 
-    /** @type { string: number } */
+    /** @type { Object<string, number> } */
     const sortedBlocks = {}
     
     Object.keys(blocks).sort().forEach(id => {
