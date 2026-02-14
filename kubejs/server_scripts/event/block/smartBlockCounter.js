@@ -1,32 +1,37 @@
 BlockEvents.rightClicked(event => {
 
-    const { block, server, item, player, hand } = event
-    const { persistentData, stringUuid } = player
-    const key = createPosKey(block.getPos())
-    const dataTag = new $CompoundTag()
+    const { block, item, player, hand } = event
     const canResetMessage = Component.translate('message.purefactory.smart_block_counter.can_reset').yellow()
     
     if (hand.name() !== 'MAIN_HAND') return
     if (item.id !== 'purefactory:smart_block_counter') return
-    if (!persistentData.contains('smartBlockCounter')) return
-    if (!persistentData.contains('smartBlockCounterFirstPos')) return
-    if (!persistentData.contains('smartBlockCounterSecondPos')) return
-
-    dataTag.putString('stringUuid', stringUuid)
-
-    switch (persistentData.getInt('smartBlockCounter')) {
+    
+    const { stringUuid } = player
+    const pos = block.getPos()
+    const { x, y, z } = pos
+    const state = CounterServerState.get(stringUuid)
+    
+    switch (state.step) {
         case 0:
-            dataTag.putString('firstKey', key)
-            server.sendData('purefactory:smart_block_counter_0', dataTag)
-            persistentData.putInt('smartBlockCounter', 1)
+            state.firstPos = pos
+            state.step = 1
             player.tell(canResetMessage)
-            persistentData.putString('smartBlockCounterFirstPos', key)
+            player.sendData('purefactory:smart_block_counter_0', {
+                stringUuid: stringUuid,
+                x: x,
+                y: y,
+                z: z
+            })
             break
         case 1:
-            dataTag.putString('secondKey', key)
-            server.sendData('purefactory:smart_block_counter_1', dataTag)
-            persistentData.putInt('smartBlockCounter', 2)
-            persistentData.putString('smartBlockCounterSecondPos', key)
+            state.secondPos = pos
+            state.step = 2
+            player.sendData('purefactory:smart_block_counter_1', {
+                stringUuid: stringUuid,
+                x: x,
+                y: y,
+                z: z
+            })
             break
     }
 
@@ -36,30 +41,34 @@ BlockEvents.rightClicked(event => {
 
 ItemEvents.rightClicked('purefactory:smart_block_counter', event => {
     
-    const { player, item, hand, level, server } = event
-    const { persistentData, stringUuid } = player
+    const { player, hand } = event
     
     if (hand.name() !== 'MAIN_HAND') return
-    if (persistentData.getInt('smartBlockCounter') !== 2) return
+    
+    const { stringUuid } = player
+    const state = CounterServerState.get(stringUuid)
 
-    const firstPos = getPosFromKey(persistentData.getString('smartBlockCounterFirstPos'))
-    const secondPos = getPosFromKey(persistentData.getString('smartBlockCounterSecondPos'))
-    const frameAABB = createAABBForBlocks(firstPos, secondPos)
+    if (state.step !== 2) return
+
     const resetMessage = Component.translate('message.purefactory.smart_block_counter.reset').green()
-    const countMessage = Component.translatable('message.purefactory.smart_block_counter.count', counterAABB(frameAABB))
-    const dataTag = new $CompoundTag()
+    
 
-    dataTag.putString('stringUuid', stringUuid)
-
-    if (Client.shiftDown) {
-        persistentData.putInt('smartBlockCounter', 0)
+    if (player.isShiftKeyDown()) {
+        CounterServerState.reset(stringUuid)
         player.swing()
         player.tell(resetMessage)
-        server.sendData('purefactory:smart_block_counter_reset', dataTag)
+        player.sendData('purefactory:smart_block_counter_reset', {
+            stringUuid: stringUuid
+        })
         return
     } 
 
+    const frameAABB = createAABBForBlocks(state.firstPos, state.secondPos)
+    const countMessage = Component.translatable('message.purefactory.smart_block_counter.count', counterAABB(frameAABB))
+
     player.swing()
     player.tell(countMessage)
-    server.sendData('purefactory:smart_block_counter_every_block', dataTag)
+    player.sendData('purefactory:smart_block_counter_every_block', {
+        stringUuid: stringUuid
+    })
 })

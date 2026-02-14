@@ -1,8 +1,4 @@
 /** @type {{ string: { string: string }}} */
-const breakPoses = {}
-/** @type {{ string: { string: string }}} */
-const counterPoses = {}
-/** @type {{ string: { string: string }}} */
 const placePoses = {}
 
 /**
